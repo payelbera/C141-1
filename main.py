@@ -1,8 +1,18 @@
 from flask import Flask, jsonify, request
-
-from storage import all_movies, liked_movies, not_liked_movies, did_not_watch
+import csv
 from demographic_filtering import output
 from content_filtering import get_recommendations
+
+all_movies=[]
+
+with open("movies.csv",encoding="utf8") as f:
+    reader = csv.reader(f)
+    data = list(reader)
+    all_movies = data[1:]
+
+liked_movies = []
+not_liked_movies = []
+did_not_watched = []
 
 app = Flask(__name__)
 
@@ -23,31 +33,33 @@ def get_movie():
 
 @app.route("/liked-movie", methods=["POST"])
 def liked_movie():
+    global all_movies
     movie = all_movies[0]
+    all_movies = all_movies[1:]
     liked_movies.append(movie)
-    all_movies.pop(0)
     return jsonify({
         "status": "success"
     }), 201
 
 @app.route("/unliked-movie", methods=["POST"])
 def unliked_movie():
+    global all_movies
     movie = all_movies[0]
+    all_movies = all_movies[1:]
     not_liked_movies.append(movie)
-    all_movies.pop(0)
     return jsonify({
         "status": "success"
     }), 201
 
 @app.route("/did-not-watch", methods=["POST"])
-def did_not_watch_view():
+def did_not_watch():
+    global all_movies
     movie = all_movies[0]
-    did_not_watch.append(movie)
-    all_movies.pop(0)
+    all_movies = all_movies[1:]
+    did_not_watched.append(movie)
     return jsonify({
         "status": "success"
     }), 201
-
 @app.route("/popular-movies")
 def popular_movies():
     movie_data = []
